@@ -1,0 +1,14 @@
+{
+  "name": "dotenv-enc",
+  "version": "1.0.0",
+  "description": "Encrypt and decrypt dotenv files.",
+  "main": "index.js",
+  "author": "Bilyal Mestanov",
+  "license": "MIT",
+  "private": false,
+  "bin": "./index.js",
+  "dependencies": {
+    "chokidar": "^3.3.0",
+    "dotenv": "^8.2.0"
+  }
+}
