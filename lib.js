@@ -5,6 +5,9 @@ const chokidar = require('chokidar');
 const crypto = require('crypto');
 
 const algorithm = 'aes-256-ctr';
+// using the same IV to avoid git noise
+// and warnings for createCipher/createDecipher
+const iv = Buffer.from('95a8adbadff0e9b65d2615fb850e701d', 'hex');
 
 const encFilename = fileName => `.#${fileName}`;
 
@@ -25,9 +28,6 @@ const decryptedPath = (filePath) => {
 };
 
 const encrypt = (buffer, key) => {
-    // Create an initialization vector
-    const iv = crypto.randomBytes(16);
-    // Create a new cipher using the algorithm, key, and iv
     const cipher = crypto.createCipheriv(algorithm, key, iv);
     // Create the new (encrypted) buffer
     const result = Buffer.concat([iv, cipher.update(buffer), cipher.final()]);
@@ -35,11 +35,6 @@ const encrypt = (buffer, key) => {
 };
 
 const decrypt = (encrypted, key) => {
-   // Get the iv: the first 16 bytes
-   const iv = encrypted.slice(0, 16);
-   // Get the rest
-   encrypted = encrypted.slice(16);
-   // Create a decipher
    const decipher = crypto.createDecipheriv(algorithm, key, iv);
    // Decrypt it
    const result = Buffer.concat([decipher.update(encrypted), decipher.final()]);
@@ -50,14 +45,14 @@ const writeEncryptedEnvFile = (filePath) => {
   const key = crypto.createHash('sha256').update(encSecret()).digest('base64').substr(0, 32);
   const fileBuffer = fs.readFileSync(filePath);
   const encryptedFileBuffer = encrypt(fileBuffer, key);
-  fs.writeFileSync(encryptedPath(filePath), encryptedFileBuffer, { encoding: 'binary' } );
+  fs.writeFile(encryptedPath(filePath), encryptedFileBuffer, { encoding: 'binary' }, () => {});
 };
 
 const writeDecryptedEnvFile = (filePath) => {
   const key = crypto.createHash('sha256').update(encSecret()).digest('base64').substr(0, 32);
   const fileBuffer = fs.readFileSync(filePath);
   const decryptedFileBuffer = decrypt(fileBuffer, key);
-  fs.writeFileSync(decryptedPath(filePath), decryptedFileBuffer.toString() );
+  fs.writeFileSync(decryptedPath(filePath), decryptedFileBuffer.toString());
 };
 
 const watchEnvFiles = (paths) => {
